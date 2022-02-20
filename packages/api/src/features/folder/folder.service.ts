@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Injectable } from '@nestjs/common';
+import { HttpException, HttpStatus, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Folder } from './folder.entity';
@@ -25,11 +25,18 @@ export class FolderService {
   }
 
   async create(name: string, path: string, isActive = true): Promise<Folder> {
-    return this.foldersRepository.create({
+    const entity = await this.foldersRepository.create({
       name,
       path,
       isActive,
     });
+
+    try {
+      const result = await this.foldersRepository.save(entity);
+      return result;
+    } catch (error) {
+      throw new HttpException('Folder already exists', HttpStatus.CONFLICT);
+    }
   }
 
   async listLocalFoldersFromPath(path = '/'): Promise<FolderSystem[]> {
