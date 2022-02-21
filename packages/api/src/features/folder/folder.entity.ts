@@ -1,4 +1,5 @@
-import { Entity, Column, PrimaryGeneratedColumn } from 'typeorm';
+import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import { System } from '../system/system.entity';
 
 @Entity('folders')
 export class Folder {
@@ -11,6 +12,12 @@ export class Folder {
   @Column({ unique: true })
   path: string;
 
+  @Column({ default: 'file' })
+  type: 'folder' | 'file';
+
   @Column({ default: true })
   isActive: boolean;
+
+  @ManyToOne(() => System, (system) => system.folders, { nullable: false })
+  system: System;
 }

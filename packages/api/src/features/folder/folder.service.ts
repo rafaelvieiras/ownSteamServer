@@ -35,7 +35,15 @@ export class FolderService {
       const result = await this.foldersRepository.save(entity);
       return result;
     } catch (error) {
-      throw new HttpException('Folder already exists', HttpStatus.CONFLICT);
+      const errorData = {
+        message: error.message,
+        status: HttpStatus.BAD_REQUEST,
+      };
+      // let message = 'Folder already exists';
+      if (error.code === 'SQLITE_CONSTRAINT') {
+        errorData.message = 'Information missing';
+      }
+      throw new HttpException(errorData.message, errorData.status);
     }
   }
 
