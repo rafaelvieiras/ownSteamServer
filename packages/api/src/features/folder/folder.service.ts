@@ -24,11 +24,17 @@ export class FolderService {
     await this.foldersRepository.delete(id);
   }
 
-  async create(name: string, path: string, isActive = true): Promise<Folder> {
+  async create(
+    name: string,
+    path: string,
+    system: string,
+    isActive = true,
+  ): Promise<Folder> {
     const entity = await this.foldersRepository.create({
       name,
       path,
       isActive,
+      systemId: system,
     });
 
     try {

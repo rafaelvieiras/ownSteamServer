@@ -1,4 +1,10 @@
-import { Entity, Column, PrimaryGeneratedColumn, ManyToOne } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryGeneratedColumn,
+  ManyToOne,
+  JoinColumn,
+} from 'typeorm';
 import { System } from '../system/system.entity';
 
 @Entity('folders')
@@ -18,6 +24,10 @@ export class Folder {
   @Column({ default: true })
   isActive: boolean;
 
-  @ManyToOne(() => System, (system) => system.folders, { nullable: false })
+  @Column({ default: false, nullable: false })
+  systemId: string;
+
+  @ManyToOne(() => System, (system) => system.folders)
+  @JoinColumn({ name: 'systemId' })
   system: System;
 }

@@ -36,8 +36,9 @@ export class FolderController {
   async create(
     @Body('name') name: string,
     @Body('path') path: string,
+    @Body('system') system: string,
   ): Promise<Folder> {
-    return this.folderService.create(name, path);
+    return this.folderService.create(name, path, system);
   }
 
   @Delete(':id')
