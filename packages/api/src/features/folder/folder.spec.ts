@@ -4,42 +4,73 @@ import fetch from 'cross-fetch';
 describe('Folder', () => {
   describe('Main', () => {
     it('List folders without any folder', async () => {
-      const folders = await fetch('http://localhost:3000/folder');
-      const result = await folders.json();
+      const folders = await httpRequest('http://localhost:3000/folder', 'GET');
 
-      expect(result.length).toBe(0);
+      expect(folders.data.length).toBe(0);
     });
 
     it('Create a new folder with system and delete the folder', async () => {
-      const systemRequest = await fetch('http://localhost:3000/system');
-      const system = await systemRequest.json();
+      const system = await httpRequest('http://localhost:3000/system', 'GET');
 
-      const folderRequest = await fetch('http://localhost:3000/folder', {
-        method: 'POST',
-        body: JSON.stringify({
-          name: 'My folder',
-          path: '/home',
-          system: system[0].id,
-        }),
-        headers: {
-          'Content-Type': 'application/json',
-        },
+      console.log(system);
+
+      const folder = await httpRequest('http://localhost:3000/folder', 'POST', {
+        name: 'My folder',
+        path: '/home',
+        system: system.data[0].id,
       });
 
-      const folder = await folderRequest.json();
-
-      const folderDeleteRequest = await fetch(
-        `http://localhost:3000/folder/${folder.id}`,
-        {
-          method: 'DELETE',
-        },
+      const folderDelete = await httpRequest(
+        `http://localhost:3000/folder/${folder.data.id}`,
+        'DELETE',
       );
 
-      expect(folder.name).toBe('My folder');
-      expect(folder.path).toBe('/home');
-      expect(folder.systemId).toBe(system[0].id);
-      expect(folderRequest.status).toBe(201);
-      expect(folderDeleteRequest.status).toBe(200);
+      expect(folder.data.name).toBe('My folder');
+      expect(folder.data.path).toBe('/home');
+      expect(folder.data.systemId).toBe(system.data[0].id);
+      expect(folder.status).toBe(201);
+      expect(folderDelete.status).toBe(200);
+    });
+
+    it('List all local machine folders folders of a path', async () => {
+      const folders = await httpRequest(
+        'http://localhost:3000/folder/local',
+        'GET',
+      );
+
+      console.log(folders);
+
+      expect(folders.data.length).toBeGreaterThanOrEqual(1);
     });
   });
 });
+
+function httpRequest(url: string, method: string, body?: any): Promise<any> {
+  return new Promise((resolve, reject) => {
+    let httpOptions = {};
+
+    if (body) {
+      httpOptions = {
+        body: JSON.stringify(body),
+      };
+    }
+
+    fetch(url, {
+      method,
+      ...httpOptions,
+      headers: {
+        'Content-Type': 'application/json',
+      },
+    })
+      .then(async (response) => {
+        if (response.status === 200) {
+          resolve({ status: response.status, data: await response.json() });
+        } else {
+          reject({ status: response.status, data: await response.json() });
+        }
+      })
+      .catch((error) => {
+        reject(error);
+      });
+  });
+}
