@@ -20,7 +20,6 @@ describe('System', () => {
         },
       });
       const result = await systems.json();
-      expect(result.name).toBe('My system');
 
       const deleteSystem = await fetch(
         `http://localhost:3000/system/${result.id}`,
@@ -29,6 +28,7 @@ describe('System', () => {
         },
       );
 
+      expect(result.name).toBe('My system');
       expect(deleteSystem.status).toBe(200);
     });
   });
