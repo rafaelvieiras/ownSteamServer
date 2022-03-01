@@ -4,17 +4,16 @@ import {
   PrimaryGeneratedColumn,
   ManyToOne,
   JoinColumn,
-  OneToMany,
 } from 'typeorm';
-import { Game } from '../game/game.entity';
+import { Folder } from '../folder/folder.entity';
 import { System } from '../system/system.entity';
 
-@Entity('folders')
-export class Folder {
+@Entity('games')
+export class Game {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ unique: true })
+  @Column()
   name: string;
 
   @Column({ unique: true })
@@ -26,13 +25,17 @@ export class Folder {
   @Column({ default: true })
   isActive: boolean;
 
-  @Column({ default: false, nullable: false })
+  @Column({ nullable: false })
   systemId: string;
 
   @ManyToOne(() => System, (system) => system.folders)
   @JoinColumn({ name: 'systemId' })
   system: System;
 
-  @OneToMany(() => Game, (game) => game.system)
-  games: Game[];
+  @Column({ nullable: false })
+  folderId: string;
+
+  @ManyToOne(() => Folder, (folder) => folder.games)
+  @JoinColumn({ name: 'folderId' })
+  folder: System;
 }

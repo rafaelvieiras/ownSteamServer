@@ -4,12 +4,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Folder } from './folder.entity';
 import { FolderSystem } from './folder.interface';
+import { GameService } from '../game/game.service';
 
 @Injectable()
 export class FolderService {
   constructor(
     @InjectRepository(Folder)
     private foldersRepository: Repository<Folder>,
+    private gameService: GameService,
   ) {}
 
   findAll(): Promise<Folder[]> {
@@ -53,7 +55,28 @@ export class FolderService {
     }
   }
 
-  async listLocalFoldersFromPath(path = '/'): Promise<FolderSystem[]> {
+  async saveGameFilesFromFolder(folder: Folder): Promise<any> {
+    fs.readdir(folder.path, (err, files) => {
+      if (files.length > 0) {
+        files.forEach((file) => {
+          this.gameService.create(
+            file,
+            folder.path + '/' + file,
+            folder.id,
+            folder.type,
+            folder.systemId,
+          );
+        });
+      }
+      if (err) {
+      }
+    });
+  }
+
+  async listLocalFoldersFromPath(
+    path = '/',
+    fileType = 0,
+  ): Promise<FolderSystem[]> {
     return new Promise((resolve, reject) => {
       fs.readdir(path, { withFileTypes: true }, (err, files) => {
         if (err) {
@@ -61,20 +84,26 @@ export class FolderService {
         } else {
           const results = [];
           files
-            .filter((file) => file.isDirectory())
+            .filter((file) => {
+              if (fileType === 0) {
+                return file.isDirectory();
+              } else if (fileType === 1) {
+                return file.isFile();
+              }
+            })
             .forEach((file: any) => {
               const fullPath =
                 path[path.length - 1] !== '/'
                   ? path + '/' + file.name
                   : path + file.name;
 
-              const folder: FolderSystem = {
+              const result: FolderSystem = {
                 name: file.name,
                 parentPath: `${path}`,
                 fullPath,
               };
 
-              results.push(folder);
+              results.push(result);
             });
 
           resolve(results);

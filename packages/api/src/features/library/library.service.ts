@@ -1,8 +1,5 @@
-import { Queue } from 'bull';
-import { InjectQueue } from '@nestjs/bull';
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { BehaviorSubject } from 'rxjs';
 import { Repository } from 'typeorm';
 import { Folder } from '../folder/folder.entity';
 import { Library } from './library.entity';

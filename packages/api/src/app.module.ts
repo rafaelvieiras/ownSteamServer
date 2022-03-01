@@ -1,11 +1,13 @@
-import { SystemModule } from './features/system/system.module';
 import { Module } from '@nestjs/common';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
+
+import { SystemModule } from './features/system/system.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { FolderModule } from './features/folder/folder.module';
 import { LibraryModule } from './features/library/library.module';
-import { ScheduleModule } from '@nestjs/schedule';
+import { GameModule } from './features/game/game.module';
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule';
     SystemModule,
     FolderModule,
     LibraryModule,
+    GameModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -4,36 +4,90 @@ import { BehaviorSubject } from 'rxjs';
 export interface LibraryProcessorJob {
   id: number;
   data: any;
+  status: LibraryProcessorStatus;
+  type: LibraryProcessorType;
+}
+export enum LibraryProcessorStatus {
+  PENDING,
+  RUNNING,
+  COMPLETED,
+  ERROR,
+}
+export enum LibraryProcessorType {
+  SYNC,
 }
 export class LibraryProcessor {
   private readonly logger = new Logger(LibraryProcessor.name);
 
-  public jobList = new BehaviorSubject([]);
-  private runningJobs = [];
+  public jobList: BehaviorSubject<LibraryProcessorJob[]> = new BehaviorSubject(
+    [],
+  );
+  private runningJobs: LibraryProcessorJob[] = [];
 
   @Cron('15 * * * * *')
-  async processJobs() {
-    this.logger.debug('Start processing jobs...');
+  async checkProcessQueueJobs() {
+    this.logger.debug('Check jobs...');
     const currentList = this.jobList.getValue();
     if (currentList.length > 0) {
+      currentList.forEach((job) => {
+        this.processJob(job);
+      });
     }
   }
 
-  async add(job: any) {
+  async add(jobData: unknown) {
     const jobList = [...this.jobList.getValue()];
-    const jobFormatted = { ...job, id: jobList.length + 1 };
+    const jobFormatted = {
+      data: jobData,
+      type: LibraryProcessorType.SYNC,
+      status: LibraryProcessorStatus.PENDING,
+      id: jobList.length + 1,
+    };
     jobList.push(jobFormatted);
     this.jobList.next(jobList);
   }
-  async getJobs() {
-    return [];
+
+  async remove(jobId: number) {
+    const jobList = [...this.jobList.getValue()];
+    const jobIndex = jobList.findIndex((job) => job.id === jobId);
+    if (jobIndex > -1) {
+      jobList.splice(jobIndex, 1);
+      this.jobList.next(jobList);
+    }
   }
 
-  async syncFolder() {
-    this.logger.debug('Start syncFolder...');
+  async update(jobId: number, status: LibraryProcessorStatus) {
+    const jobList = [...this.jobList.getValue()];
+    const jobIndex = jobList.findIndex((job) => job.id === jobId);
+    if (jobIndex > -1) {
+      jobList[jobIndex].status = status;
+      this.jobList.next(jobList);
+    }
+  }
+
+  async getJobs() {
+    return this.jobList.getValue();
+  }
+
+  async syncFolder(job: LibraryProcessorJob) {
+    this.logger.debug(`Sync Folder... ID:${job.id}`);
+    this.update(job.id, LibraryProcessorStatus.RUNNING);
   }
 
   async onProgress(job: any) {
     console.log(job);
+  }
+
+  private processJob(job: LibraryProcessorJob) {
+    if (job.status === LibraryProcessorStatus.PENDING) {
+      this.logger.debug(`Processing job... ID:${job.id}`);
+      switch (job.type) {
+        case LibraryProcessorType.SYNC:
+          this.syncFolder(job);
+          break;
+        default:
+          break;
+      }
+    }
   }
 }

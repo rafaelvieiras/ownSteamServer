@@ -12,7 +12,7 @@ export class LibraryController {
 
   @Get()
   async findAll(): Promise<Library[]> {
-    return this.folderService.findAll();
+    return this.libraryService.findAll();
   }
 
   @Get('/sync')
